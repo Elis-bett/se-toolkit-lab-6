@@ -3,6 +3,9 @@
 <h2>Table of contents</h2>
 
 - [What is `HTTP`](#what-is-http)
+- [Web server and web client](#web-server-and-web-client)
+  - [Web server](#web-server)
+  - [Web client](#web-client)
 - [Communication using `HTTP`](#communication-using-http)
 - [`HTTP` request](#http-request)
   - [`HTTP` request method](#http-request-method)
@@ -20,14 +23,36 @@
   - [`404` (Not Found)](#404-not-found)
   - [`422` (Unprocessable Entity)](#422-unprocessable-entity)
   - [`500` (Internal Server Error)](#500-internal-server-error)
+- [Send a `GET` request](#send-a-get-request)
+  - [Send a `GET` request using a browser](#send-a-get-request-using-a-browser)
+  - [Send a `GET` request using `curl`](#send-a-get-request-using-curl)
 
 ## What is `HTTP`
 
-`HTTP` (`HyperText Transfer Protocol`) is the foundation of data communication on the web. This [protocol](./web-development.md#protocol) defines how messages are formatted and transmitted between [web servers and web clients](./web-development.md#web-server-and-web-client).
+`HTTP` (`HyperText Transfer Protocol`) is the foundation of data communication on the web. This [protocol](./computer-networks.md#protocol) defines how messages are formatted and transmitted between [web servers and web clients](#web-server-and-web-client).
+
+## Web server and web client
+
+### Web server
+
+A web server is software that delivers content or services to [web clients](#web-client) over the [Internet](./computer-networks.md#internet) using a [protocol](./computer-networks.md#protocol).
+
+> [!NOTE]
+> We refer to a web server as software only.
+>
+> Other sources may refer to it as hardware too.
+>
+> Example: [What is a web server](https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_web_server).
+
+### Web client
+
+A web client is software that requests content from a [web server](#web-server) and displays the received content.
+
+Web clients include [browsers](./useful-programs.md#browser) ([`Chrome`](./useful-programs.md#chrome), [`Firefox`](./useful-programs.md#firefox)) and command-line tools ([`curl`](./useful-programs.md#curl)).
 
 ## Communication using `HTTP`
 
-The following diagram illustrates the communication between a [web client](./web-development.md#web-client) and [web server](./web-development.md#web-server) using the `HTTP` protocol:
+The following diagram illustrates the communication between a [web client](#web-client) and [web server](#web-server) using the `HTTP` protocol:
 
 ```mermaid
 sequenceDiagram
@@ -71,7 +96,7 @@ Common methods:
 
 ### Query parameter
 
-Query parameters are key-value pairs appended to a [URL](./web-development.md#url) after a `?` character, used to send data to the server with a request.
+Query parameters are key-value pairs appended to a [URL](./computer-networks.md#url) after a `?` character, used to send data to the server with a request.
 
 ## `HTTP` response
 
@@ -114,3 +139,19 @@ Status codes are three-digit numbers returned by servers indicating the result o
 ### `500` (Internal Server Error)
 
 [`500` (Internal Server Error)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/500) — an unexpected server error occurred.
+
+## Send a `GET` request
+
+<!-- no toc -->
+- Method 1: [Send a `GET` request using a browser](#send-a-get-request-using-a-browser)
+- Method 2: [Send a `GET` request using `curl`](#send-a-get-request-using-curl)
+
+### Send a `GET` request using a browser
+
+1. Open the [URL](./computer-networks.md#url) in a browser.
+
+   The browser sends the `GET` request by default.
+
+### Send a `GET` request using `curl`
+
+See [`curl`](./useful-programs.md#send-a-get-request-with-curl).

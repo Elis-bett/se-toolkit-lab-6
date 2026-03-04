@@ -33,13 +33,12 @@
   - [Shell](#shell)
   - [`SSH`](#ssh)
   - [Swagger](#swagger)
-  - [Testing](#testing)
+  - [Quality assurance](#quality-assurance)
   - [Useful programs](#useful-programs)
   - [Visualize the architecture](#visualize-the-architecture)
   - [VM](#vm)
   - [Your VM image](#your-vm-image)
   - [`VS Code`](#vs-code)
-  - [Web development](#web-development)
 
 ## Lab tasks
 
@@ -197,7 +196,7 @@ Key setup, connecting to a VM, and common errors.
 
 `Swagger UI` for exploring and testing API endpoints.
 
-### [Testing](./wiki/testing.md)
+### [Quality assurance](./wiki/quality-assurance.md)
 
 What testing is, assertions, and links to language-specific testing guides.
 
@@ -220,7 +219,3 @@ Programs pre-installed on the lab VM image (`docker`, `uv`, `python`, `nix`, etc
 ### [`VS Code`](./wiki/vs-code.md)
 
 IDE layout, panels, the `Command Palette`, and editor features.
-
-### [Web development](./wiki/web-development.md)
-
-Web servers, REST APIs, `JSON`, and using `Swagger UI` to interact with endpoints.

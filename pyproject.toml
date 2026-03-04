@@ -27,18 +27,6 @@ dev = [
 select = ["RET503"]
 
 [tool.poe.tasks]
-# Run server
-
-## Check code and run server in dev mode
-
-[tool.poe.tasks.dev]
-help = "Run server after static analysis"
-sequence = ["check", "dev-unsafe"]
-
-## Run server
-[tool.poe.tasks.dev-unsafe]
-help = "Run server without static analysis"
-cmd = "python backend/app/run.py"
 
 # Run static analysis
 
@@ -52,7 +40,7 @@ sequence = ["format", "lint", "typecheck"]
 
 [tool.poe.tasks.typecheck]
 help = "Run all typecheckers"
-parallel = ["ty-check", "pyright-check"]
+sequence = ["ty-check", "pyright-check"]
 
 [tool.poe.tasks.ty-check]
 help = "Run the 'ty' typechecker"

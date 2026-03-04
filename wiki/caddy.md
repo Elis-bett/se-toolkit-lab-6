@@ -12,7 +12,7 @@
 
 ## What is `Caddy`
 
-`Caddy` is an open-source [web server](./web-development.md#web-server) and [reverse proxy](./computer-networks.md#reverse-proxy).
+`Caddy` is an open-source [web server](./http.md#web-server) and [reverse proxy](./computer-networks.md#reverse-proxy).
 
 `Caddy` is configured via a [`Caddyfile`](#caddyfile).
 
@@ -46,7 +46,7 @@ This configuration:
 
 ### `Caddy` serves frontend files
 
-`Caddy` serves static [front-end](./web-development.md#frontend) files from `/srv` for all other paths. The `try_files` directive falls back to `index.html` for client-side routing.
+`Caddy` serves static front-end files from `/srv` for all other paths. The `try_files` directive falls back to `index.html` for client-side routing.
 
 ### `Caddy` forwards requests to backend
 

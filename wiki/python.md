@@ -164,7 +164,7 @@ Docs:
 
 ### The `assert` statement
 
-The `assert` statement checks that a condition is true. If the condition is false, the test fails with an `AssertionError`.
+The `assert` statement checks that a condition is true (see [Assertion](./quality-assurance.md#assertion)). If the condition is false, the test fails with an `AssertionError`.
 
 ```python
 assert result == expected

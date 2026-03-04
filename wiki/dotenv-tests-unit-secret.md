@@ -17,7 +17,7 @@
 
 ## What is `.env.tests.unit.secret`
 
-`.env.tests.unit.secret` is an [`.env` file](./environments.md#env-file) that stores [environment variables](./environments.md#environment-variable) for running [unit tests](./testing.md#unit-tests).
+`.env.tests.unit.secret` is an [`.env` file](./environments.md#env-file) that stores [environment variables](./environments.md#environment-variable) for running [unit tests](./quality-assurance.md#unit-test).
 
 Default values: [`.env.tests.unit.example`](../.env.tests.unit.example)
 

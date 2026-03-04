@@ -24,6 +24,8 @@
 
 ### `JavaScript`
 
+`JavaScript` is a programming language that runs in the browser and makes web pages interactive. It can update content, respond to events, and communicate with servers.
+
 ### `SQL`
 
 ### `Rust`

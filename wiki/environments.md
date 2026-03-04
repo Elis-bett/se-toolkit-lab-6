@@ -19,6 +19,7 @@
   - [Unencrypted secrets in the repo](#unencrypted-secrets-in-the-repo)
   - [Store encrypted secrets in the repo](#store-encrypted-secrets-in-the-repo)
   - [Add files containing secrets to `.gitignore`](#add-files-containing-secrets-to-gitignore)
+- [Feature flag](#feature-flag)
 
 ## What is an environment
 
@@ -158,3 +159,7 @@ Then, you can commit the file containing the secrets.
 ### Add files containing secrets to `.gitignore`
 
 Match in [`.gitignore`](./git.md#gitignore) all files that can contain [unencrypted secrets](#unencrypted-secrets-in-the-repo) so that these secrets don't get added to the repo.
+
+## Feature flag
+
+A feature flag (also called a feature toggle) is a mechanism that enables or disables a feature at runtime without deploying new code. Feature flags let teams decouple deployment from release, enabling gradual rollouts, `A/B` testing, and quick rollbacks.

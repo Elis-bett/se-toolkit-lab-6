@@ -37,10 +37,9 @@
     - [1.14.1. (UPD) Connect `pgAdmin` to the database](#1141-upd-connect-pgadmin-to-the-database)
     - [1.14.2. (UPD) Inspect the tables](#1142-upd-inspect-the-tables)
   - [1.15. (UPD) Stop the services](#115-upd-stop-the-services)
-  - [1.16. Set up the autochecker](#116-set-up-the-autochecker)
-    - [1.16.1. (UPD) Log in to the autochecker](#1161-upd-log-in-to-the-autochecker)
-    - [1.16.2. (UPD) Prepare your VM for checking](#1162-upd-prepare-your-vm-for-checking)
-  - [1.17. (UPD) Set up a coding agent](#117-upd-set-up-a-coding-agent)
+  - [1.16. (UPD) Set up a coding agent](#116-upd-set-up-a-coding-agent)
+  - [1.17. Set up the autochecker](#117-set-up-the-autochecker)
+  - [1.18. Check the setup using the autochecker](#118-check-the-setup-using-the-autochecker)
 - [2. Optional steps](#2-optional-steps)
   - [2.1. (UPD) Set up `Nix`](#21-upd-set-up-nix)
   - [2.2. (UPD) Set up `direnv`](#22-upd-set-up-direnv)
@@ -98,13 +97,13 @@
 
 1. [Fork the course instructors' repo](../../wiki/github.md#fork-a-repo).
 
-   The course instructors' repo [URL](../../wiki/web-development.md#url) is <https://github.com/inno-se-toolkit/se-toolkit-lab-4>.
+   The course instructors' repo [URL](../../wiki/computer-networks.md#url) is <https://github.com/inno-se-toolkit/se-toolkit-lab-4>.
 
 #### 1.3.3. (UPD) Go to your fork
 
 1. [Go to your fork](../../wiki/github.md#go-to-your-fork).
 
-   The [URL](../../wiki/web-development.md#url) of your fork should look like `https://github.com/<your-github-username>/se-toolkit-lab-4`.
+   The [URL](../../wiki/computer-networks.md#url) of your fork should look like `https://github.com/<your-github-username>/se-toolkit-lab-4`.
 
 #### 1.3.4. (UPD) Enable issues
 
@@ -406,22 +405,7 @@ Make sure the services are running. Go back to [step 1.11.2](#1112-upd-start-the
 1. [Check that the current directory is `se-toolkit-lab-4`](../../wiki/shell.md#check-the-current-directory-is-directory-name).
 2. [Stop and remove all containers and volumes](../../wiki/docker-compose.md#stop-and-remove-all-containers-and-volumes).
 
-### 1.16. Set up the autochecker
-
-> [!NOTE]
-> The autochecker is a bot that checks your repository and VM.
-
-#### 1.16.1. (UPD) Log in to the autochecker
-
-1. Open in `Telegram`: <https://t.me/auchebot>.
-2. Log in.
-
-#### 1.16.2. (UPD) Prepare your VM for checking
-
-1. [Connect to your VM](../../wiki/vm.md#connect-to-the-vm).
-2. [Set up your VM for the autochecker](../../wiki/vm-autochecker.md#set-up-the-vm-for-autochecker).
-
-### 1.17. (UPD) Set up a coding agent
+### 1.16. (UPD) Set up a coding agent
 
 A coding agent can help you write code, explain concepts, and debug issues.
 
@@ -432,6 +416,14 @@ A coding agent can help you write code, explain concepts, and debug issues.
 
 - Method 1: [Set up a `Qwen Code`-based agent](../../wiki/coding-agents.md#set-up-qwen-code-based-agent).
 - Method 2: [Choose another coding agent](../../wiki/coding-agents.md#choose-a-coding-agent).
+
+### 1.17. Set up the autochecker
+
+[Set up the autochecker](../../wiki/autochecker.md#set-up-the-autochecker)
+
+### 1.18. Check the setup using the autochecker
+
+[Check the task using the autochecker `Telegram` bot](../../wiki/autochecker.md#check-the-task-using-the-autochecker-bot).
 
 ---
 

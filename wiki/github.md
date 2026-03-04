@@ -61,7 +61,7 @@
 
 ## The `GitHub` site
 
-The `GitHub` site has this [URL](./web-development.md#url): <https://github.com>.
+The `GitHub` site has this [URL](./computer-networks.md#url): <https://github.com>.
 
 ## `GitHub` username
 
@@ -97,7 +97,7 @@ The name must be unique among repositories of the [repository owner](#repository
 
 ### `<repo-url>`
 
-We use `<repo-url>` to refer to a repository [URL](./web-development.md#url).
+We use `<repo-url>` to refer to a repository [URL](./computer-networks.md#url).
 
 A repository URL is typically `https://github.com/<repo-owner-github-username>/<repo-name>`.
 Placeholder values:
@@ -113,7 +113,7 @@ In [`Git`](./git.md#what-is-git), `upstream` is the conventional name for the [r
 
 In [`Git`](./git.md#what-is-git), `origin` is the conventional name for the [remote](./git.md#what-is-remote) that points to your own copy of the [repository](#repository) — typically [your fork](#fork).
 
-For example, if your fork [URL](./web-development.md#url) is [`<your-fork-url>`](#your-fork-url), then `origin` points to that URL.
+For example, if your fork [URL](./computer-networks.md#url) is [`<your-fork-url>`](#your-fork-url), then `origin` points to that URL.
 
 You can verify which URLs `origin` and `upstream` point to by [inspecting remotes](./gitlens.md#inspect-the-remotes).
 
@@ -122,7 +122,7 @@ You can verify which URLs `origin` and `upstream` point to by [inspecting remote
 You can browse a repository at a particular [revision](./git.md#revision): `<repo-url>/tree/<revision>`.
 
 - See [`<repo-url>`](#repo-url).
-- Replace the `<revision>` at the end of the [URL](./web-development.md#url) with an actual [revision](./git.md#revision).
+- Replace the `<revision>` at the end of the [URL](./computer-networks.md#url) with an actual [revision](./git.md#revision).
 
 Example: <https://github.com/nixos/nixpkgs/tree/26eaeac4e409d7b5a6bf6f90a2a2dc223c78d915>
 
@@ -155,9 +155,9 @@ When you fork a repository on `GitHub`, you create a personal copy under your `G
 
 ### `<your-fork-url>`
 
-The [URL](./web-development.md#url) of your [fork](#fork).
+The [URL](./computer-networks.md#url) of your [fork](#fork).
 
-Assume the [URL](./web-development.md#url) of the [repo that you forked](#fork-a-repo) is `https://github.com/<repo-owner-github-username>/<repo-name>`.
+Assume the [URL](./computer-networks.md#url) of the [repo that you forked](#fork-a-repo) is `https://github.com/<repo-owner-github-username>/<repo-name>`.
 
 Then, your fork URL should look like `https://github.com/<your-github-username>/<repo-name>`.
 

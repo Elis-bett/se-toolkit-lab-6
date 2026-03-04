@@ -62,13 +62,13 @@ Default: `"Learning Management Service"`
 
 ### `APP_DEBUG`
 
-Enables debug mode in the [web server](./web-development.md#web-server). When `true`, the server returns detailed error messages.
+Enables debug mode in the [web server](./http.md#web-server). When `true`, the server returns detailed error messages.
 
 Default: `false`
 
 ### `APP_RELOAD`
 
-Enables auto-reload. When `true`, the [web server](./web-development.md#web-server) restarts automatically when source files change.
+Enables auto-reload. When `true`, the [web server](./http.md#web-server) restarts automatically when source files change.
 
 Default: `false`
 
@@ -98,13 +98,13 @@ Default: `42001`
 
 ### `APP_ENABLE_INTERACTIONS`
 
-A [feature flag](./web-development.md#feature-flag) for enabling the `/interactions` endpoint.
+A [feature flag](./environments.md#feature-flag) for enabling the `/interactions` endpoint.
 
 Default: `true`
 
 ### `APP_ENABLE_LEARNERS`
 
-A [feature flag](./web-development.md#feature-flag) for enabling the `/learners` endpoint.
+A [feature flag](./environments.md#feature-flag) for enabling the `/learners` endpoint.
 
 Default: `true`
 

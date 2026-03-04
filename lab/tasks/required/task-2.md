@@ -12,7 +12,60 @@ Write unit and end-to-end tests, diagnose bugs from failing test output, and use
 
 The back-end contains intentional bugs that you will discover and fix by writing tests, then use an AI agent to generate additional coverage.
 
-<!-- TODO diagram -->
+<h4>Diagram</h4>
+
+```mermaid
+sequenceDiagram
+    actor Developer
+    participant Local as "Local Machine<br/>(pytest)"
+    participant GitHub as "GitHub<br/>(origin)"
+    participant VM as "VM<br/>(Docker / FastAPI)"
+    participant AI as "AI Agent"
+
+    Note over Developer,VM: Part A: Unit Tests (Local)
+
+    Developer->>Local: uv run poe test-unit
+    Local-->>Developer: 3 passed
+
+    Developer->>Local: Add boundary test
+    Developer->>Local: uv run poe test-unit
+    Local-->>Developer: FAILED: assert 0 == 1
+
+    Developer->>Local: Fix bug (< to <=)
+    Developer->>Local: uv run poe test-unit
+    Local-->>Developer: 4 passed
+
+    Developer->>GitHub: git push
+    Developer->>VM: git pull, docker compose up app --build -d
+
+    Note over Developer,VM: Part B: End-to-End Tests (Local to VM)
+
+    Developer->>Local: uv run poe test-e2e
+    Local->>VM: GET /interactions/
+    VM-->>Local: 500 Internal Server Error
+    Local-->>Developer: FAILED: assert 500 == 200
+
+    Developer->>VM: docker compose logs app
+    VM-->>Developer: ResponseValidationError:<br/>timestamp field missing
+
+    Developer->>Local: Fix bug (timestamp to created_at)
+    Developer->>GitHub: git push
+    Developer->>VM: git pull, docker compose up app --build -d
+
+    Developer->>Local: uv run poe test-e2e
+    Local->>VM: GET /interactions/
+    VM-->>Local: 200 OK
+    Local-->>Developer: 5 passed
+
+    Note over Developer,AI: Part C: AI-Generated Tests
+
+    Developer->>AI: Generate 10 unit tests
+    AI-->>Developer: test_interactions_ai.py
+
+    Developer->>Developer: Review and curate
+    Developer->>Local: uv run poe test
+    Local-->>Developer: All tests passed
+```
 
 <h4>Table of contents</h4>
 
@@ -21,11 +74,11 @@ The back-end contains intentional bugs that you will discover and fix by writing
   - [1.2. Create a `Lab Task` issue](#12-create-a-lab-task-issue)
   - [1.3. Part A: Run unit tests locally](#13-part-a-run-unit-tests-locally)
     - [1.3.1. Create the environment file for unit tests](#131-create-the-environment-file-for-unit-tests)
-    - [1.3.2. Run existing unit tests](#132-run-existing-unit-tests)
+    - [1.3.2. Run all unit tests](#132-run-all-unit-tests)
     - [1.3.3. Add a new unit test](#133-add-a-new-unit-test)
     - [1.3.4. Fix the bug](#134-fix-the-bug)
     - [1.3.5. Rerun unit tests](#135-rerun-unit-tests)
-    - [1.3.6. Commit your changes](#136-commit-your-changes)
+    - [1.3.6. Commit changes](#136-commit-changes)
     - [1.3.7. Transfer the changes to your VM](#137-transfer-the-changes-to-your-vm)
     - [1.3.8. Deploy the fixed `app` service on your VM](#138-deploy-the-fixed-app-service-on-your-vm)
   - [1.4. Part B: Run end-to-end tests remotely](#14-part-b-run-end-to-end-tests-remotely)
@@ -39,9 +92,11 @@ The back-end contains intentional bugs that you will discover and fix by writing
   - [1.5. Part C: Generate tests with an AI agent](#15-part-c-generate-tests-with-an-ai-agent)
     - [1.5.1. Generate tests](#151-generate-tests)
     - [1.5.2. Review and curate the tests](#152-review-and-curate-the-tests)
-    - [1.5.3. Run the full test suite](#153-run-the-full-test-suite)
-    - [1.5.4. Commit the curated tests](#154-commit-the-curated-tests)
+    - [1.5.3. Commit the curated tests](#153-commit-the-curated-tests)
+    - [1.5.4. Run the full test suite](#154-run-the-full-test-suite)
+    - [1.5.5. Address the testing findings](#155-address-the-testing-findings)
   - [1.6. Finish the task](#16-finish-the-task)
+  - [1.7. Check the task using the autochecker](#17-check-the-task-using-the-autochecker)
 - [2. Acceptance criteria](#2-acceptance-criteria)
 
 ## 1. Steps
@@ -61,11 +116,11 @@ Title: `[Task] Back-end Testing`
 
 <!-- no toc -->
 - [1.3.1. Create the environment file for unit tests](#131-create-the-environment-file-for-unit-tests)
-- [1.3.2. Run existing unit tests](#132-run-existing-unit-tests)
+- [1.3.2. Run all unit tests](#132-run-all-unit-tests)
 - [1.3.3. Add a new unit test](#133-add-a-new-unit-test)
 - [1.3.4. Fix the bug](#134-fix-the-bug)
 - [1.3.5. Rerun unit tests](#135-rerun-unit-tests)
-- [1.3.6. Commit your changes](#136-commit-your-changes)
+- [1.3.6. Commit changes](#136-commit-changes)
 - [1.3.7. Transfer the changes to your VM](#137-transfer-the-changes-to-your-vm)
 - [1.3.8. Deploy the fixed `app` service on your VM](#138-deploy-the-fixed-app-service-on-your-vm)
 
@@ -82,9 +137,9 @@ Title: `[Task] Back-end Testing`
    cp .env.tests.unit.example .env.tests.unit.secret
    ```
 
-#### 1.3.2. Run existing unit tests
+#### 1.3.2. Run all unit tests
 
-1. To run the existing unit tests,
+1. To run all unit tests,
 
    [run in the `VS Code Terminal`](../../../wiki/vs-code.md#run-a-command-in-the-vs-code-terminal):
 
@@ -92,7 +147,9 @@ Title: `[Task] Back-end Testing`
    uv run poe test-unit
    ```
 
-2. All existing tests should pass.
+   See [`poe test-unit`](../../../wiki/pyproject-toml.md#poe-test-unit).
+
+2. All tests should pass.
 
    The output should be similar to this:
 
@@ -108,7 +165,7 @@ Title: `[Task] Back-end Testing`
 1. [Open the file](../../../wiki/vs-code.md#open-the-file):
    [`backend/tests/unit/test_interactions.py`](../../../backend/tests/unit/test_interactions.py).
 
-2. Add a new unit test that targets the following [boundary-value case](../../../wiki/testing.md#boundary-value-analysis):
+2. Add a new unit test that targets the following [boundary-value case](../../../wiki/quality-assurance.md#boundary-value-analysis):
 
    An interaction whose `item_id` is exactly equal to `max_item_id` — for example, `item_id=2` and `max_item_id=2`. This interaction should appear in the results because the filter condition is "less than or equal to."
 
@@ -152,7 +209,7 @@ Title: `[Task] Back-end Testing`
    - The test failed (`FAILED`).
    - The test is in the file `backend/tests/unit/test_interactions.py`.
    - The name of the failing test is `test_filter_includes_interaction_at_boundary`.
-   - The failed [assertion](../../../wiki/testing.md#assertion) is `assert 0 == 1` — the filter returned 0 interactions, but 1 was expected.
+   - The failed [assertion](../../../wiki/quality-assurance.md#assertion) is `assert 0 == 1` — the filter returned 0 interactions, but 1 was expected.
 
 #### 1.3.4. Fix the bug
 
@@ -202,9 +259,9 @@ Title: `[Task] Back-end Testing`
    ===================== 4 passed in X.XXs =====================
    ```
 
-#### 1.3.6. Commit your changes
+#### 1.3.6. Commit changes
 
-1. [Commit](../../../wiki/git-workflow.md#commit) your changes.
+1. [Commit changes](../../../wiki/git-workflow.md#commit-changes).
 
    Use this commit message:
 
@@ -278,7 +335,7 @@ Title: `[Task] Back-end Testing`
 - [1.4.7. Commit the fix](#147-commit-the-fix)
 
 > [!NOTE]
-> [End-to-end (E2E) tests](../../../wiki/testing.md#end-to-end-test) run on your local machine and send real [`HTTP` requests](../../../wiki/http.md#http-request) to the deployed version on the VM.
+> [End-to-end (E2E) tests](../../../wiki/quality-assurance.md#end-to-end-test) run on your local machine and send real [`HTTP` requests](../../../wiki/http.md#http-request) to the deployed version on the VM.
 >
 > In [Part A](#13-part-a-run-unit-tests-locally), a unit test caught a logic error inside a single function. Some bugs only appear when all components interact during a real request — for example, a mismatch between layers of the stack. End-to-end tests catch these integration-level failures.
 
@@ -310,6 +367,8 @@ Title: `[Task] Back-end Testing`
    ```terminal
    uv run poe test-e2e
    ```
+
+   See [`poe test-e2e`](../../../wiki/pyproject-toml.md#poe-test-e2e).
 
 2. All existing end-to-end tests should pass.
 
@@ -485,7 +544,7 @@ Title: `[Task] Back-end Testing`
 
 #### 1.4.7. Commit the fix
 
-1. [Commit](../../../wiki/git-workflow.md#commit) your changes.
+1. [Commit changes](../../../wiki/git-workflow.md#commit-changes).
 
    Use this commit message:
 
@@ -501,8 +560,9 @@ Title: `[Task] Back-end Testing`
 <!-- no toc -->
 - [1.5.1. Generate tests](#151-generate-tests)
 - [1.5.2. Review and curate the tests](#152-review-and-curate-the-tests)
-- [1.5.3. Run the full test suite](#153-run-the-full-test-suite)
-- [1.5.4. Commit the curated tests](#154-commit-the-curated-tests)
+- [1.5.3. Commit the curated tests](#153-commit-the-curated-tests)
+- [1.5.4. Run the full test suite](#154-run-the-full-test-suite)
+- [1.5.5. Address the testing findings](#155-address-the-testing-findings)
 
 #### 1.5.1. Generate tests
 
@@ -510,14 +570,18 @@ Title: `[Task] Back-end Testing`
 
 2. Give it this prompt:
 
-   > "Read the back-end source code under `backend/` and the existing unit tests in `backend/tests/unit/test_interactions.py`. Generate five new unit tests that cover edge cases and boundary values not already tested. Write them to a new file `backend/tests/unit/test_interactions_ai.py`."
+   > Read the back-end source code under `backend/` and the existing unit tests in `backend/tests/unit/test_interactions.py`.
+   >
+   > Generate ten new unit tests that cover edge cases and boundary values not already tested.
+   >
+   > Write them to a new file `backend/tests/unit/test_interactions_ai.py`.
 
 3. Wait for the agent to generate the tests.
 
 #### 1.5.2. Review and curate the tests
 
 1. [Open the file](../../../wiki/vs-code.md#open-the-file):
-   [`backend/tests/unit/test_interactions_ai.py`](../../../backend/tests/unit/test_interactions_ai.py).
+   `backend/tests/unit/test_interactions_ai.py`.
 
 2. Review each generated test against the following criteria:
 
@@ -543,7 +607,20 @@ Title: `[Task] Back-end Testing`
    #     ...
    ```
 
-#### 1.5.3. Run the full test suite
+#### 1.5.3. Commit the curated tests
+
+> [!NOTE]
+> Commit new tests to be able to improve them later without losing the history of changes.
+
+1. [Commit changes](../../../wiki/git-workflow.md#commit-changes).
+
+   Use the following commit message:
+
+   ```text
+   test: add curated AI-generated unit tests
+   ```
+
+#### 1.5.4. Run the full test suite
 
 1. To run the full test suite,
 
@@ -553,22 +630,28 @@ Title: `[Task] Back-end Testing`
    uv run poe test
    ```
 
+   See [`poe test`](../../../wiki/pyproject-toml.md#poe-test).
+
 2. All tests (including the curated AI-generated ones) should pass.
 
-#### 1.5.4. Commit the curated tests
+#### 1.5.5. Address the testing findings
 
-1. [Commit](../../../wiki/git-workflow.md#commit) your changes.
+1. If a test fails, decide whether the test or the implementation is wrong.
 
-   Use the following commit message:
+2. If the test is flawed, go back to [1.5.2](#152-review-and-curate-the-tests) and fix or discard it.
 
-   ```text
-   test: add curated AI-generated unit tests
-   ```
+3. If the test reveals a real bug:
+   1. Fix the implementation.
+   2. [Commit changes](../../../wiki/git-workflow.md#commit-changes).
 
 ### 1.6. Finish the task
 
 1. [Create a PR](../../../wiki/git-workflow.md#create-a-pr-to-the-main-branch-in-your-fork) with your changes.
 2. [Get a PR review](../../../wiki/git-workflow.md#get-a-pr-review) and complete the subsequent steps in the `Git workflow`.
+
+### 1.7. Check the task using the autochecker
+
+[Check the task using the autochecker `Telegram` bot](../../../wiki/autochecker.md#check-the-task-using-the-autochecker-bot).
 
 ---
 

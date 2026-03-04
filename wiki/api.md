@@ -5,6 +5,8 @@
 - [What is an API](#what-is-an-api)
 - [Endpoint](#endpoint)
 - [`REST` API](#rest-api)
+- [Service](#service)
+- [Backend](#backend)
 - [Base URL](#base-url)
 - [What is an API key](#what-is-an-api-key)
   - [`<api-key>`](#api-key)
@@ -14,7 +16,7 @@
 
 An API (`Application Programming Interface`) is a set of rules that lets programs communicate with each other.
 
-A web API exposes [endpoints](#endpoint) that clients can call over `HTTP`.
+A web API of a [web server](./http.md#web-server) exposes [endpoints](#endpoint) that [web clients](./http.md#web-client) can call over [`HTTP`](./http.md#http).
 
 Docs:
 
@@ -54,6 +56,22 @@ Example:
 | Get one item         | `GET`  | `/items/{id}`  | `200`/`404` |
 | Create an item       | `POST` | `/items`       | `201`       |
 | Update an item       | `PUT`  | `/items/{id}`  | `200`/`404` |
+
+## Service
+
+A service is an application (or part of a system) that exposes [endpoints](#endpoint) and performs a focused responsibility.
+
+Examples:
+
+- Course materials service.
+- Authentication service.
+- Recommendation service.
+
+A service can call other services over the network, but to the client it still appears as endpoints that return responses.
+
+## Backend
+
+<!-- TODO -->
 
 ## Base URL
 

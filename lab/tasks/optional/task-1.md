@@ -49,7 +49,7 @@ Title: `[Task] CI/CD`
    2. Run all back-end unit tests using `uv run poe test`.
    3. Start containers using `Docker Compose`.
    4. Run all end-to-end tests.
-4. [Commit](../../../wiki/git-workflow.md#commit) the workflow file.
+4. [Commit changes](../../../wiki/git-workflow.md#commit-changes).
 5. Push the branch to `GitHub`.
 
    Verify the workflow runs and passes in the `Actions` tab of your fork.
@@ -64,15 +64,18 @@ Title: `[Task] CI/CD`
    - `DOCKERHUB_USERNAME`
    - `DOCKERHUB_TOKEN`
 3. In `.github/workflows/ci.yml`, add the `publish` job that runs after the `test` job passes.
-4. The `publish` job must do the following:
+
+   The `publish` job must do the following:
    1. Log in to `DockerHub` using the secrets.
    2. Build the [`Docker` image](../../../wiki/docker.md#image) of your backend.
    3. Push the image to `DockerHub` as `<your-dockerhub-username>/se-toolkit-lab-4-backend:<git-commit-hash>`. Replace:
 
-   - [`<your-dockerhub-username>`](../../../wiki/docker.md#your-dockerhub-username)
-   - `<git-commit-hash>` with the [hash of the commit](../../../wiki/git.md#commit-hash) that triggered the workflow.
-5. [Commit](../../../wiki/git-workflow.md#commit) the workflow update.
-6. Push the branch to `GitHub`.
+      - [`<your-dockerhub-username>`](../../../wiki/docker.md#your-dockerhub-username)
+      - `<git-commit-hash>` with the [hash of the commit](../../../wiki/git.md#commit-hash) that triggered the workflow.
+
+4. [Commit changes](../../../wiki/git-workflow.md#commit-changes).
+
+5. Push the branch to `GitHub`.
 
    Verify the image appears on `DockerHub` after the workflow passes.
 

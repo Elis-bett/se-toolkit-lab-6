@@ -113,7 +113,7 @@ Mark unfinished work with `TODO` so it can be found by search:
   and return type).
 - Use `X | None` union syntax, not `Optional[X]`.
 - Pyright runs in **strict** mode — zero errors allowed.
-- ty runs in parallel as a second opinion.
+- ty runs as a second opinion.
 
 ### TypeScript types
 

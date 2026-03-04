@@ -24,6 +24,17 @@
   - [12.18. Multi-bug debugging tasks](#1218-multi-bug-debugging-tasks)
   - [12.19. Step checkpoints](#1219-step-checkpoints)
   - [12.20. Recovery guidance](#1220-recovery-guidance)
+- [13. Conceptual review dimensions](#13-conceptual-review-dimensions)
+  - [D1. Learning objective clarity](#d1-learning-objective-clarity)
+  - [D2. Step-by-step completeness](#d2-step-by-step-completeness)
+  - [D3. Student navigation](#d3-student-navigation)
+  - [D4. Checkpoints and feedback loops](#d4-checkpoints-and-feedback-loops)
+  - [D5. Acceptance criteria alignment](#d5-acceptance-criteria-alignment)
+  - [D6. Difficulty and progression](#d6-difficulty-and-progression)
+  - [D7. Practical usability](#d7-practical-usability)
+  - [D8. LLM-independence](#d8-llm-independence)
+  - [D9. Git workflow coherence](#d9-git-workflow-coherence)
+  - [D10. Conceptual gaps and misconceptions](#d10-conceptual-gaps-and-misconceptions)
 - [15. Testing pattern](#15-testing-pattern)
 - [17. Checklist before publishing](#17-checklist-before-publishing)
 
@@ -425,6 +436,78 @@ Bad:
 ~~~markdown
 4. Ask the TA if something doesn't work.
 ~~~
+
+---
+
+## 13. Conceptual review dimensions
+
+Use these dimensions when reviewing a task file for conceptual and educational problems. Conceptual review is distinct from convention review (formatting, naming, structure) — it evaluates whether the task works as a learning experience.
+
+For each problem found, record: the dimension, the line number(s) or section, a short description of the problem, and a suggested fix. Distinguish severity:
+
+- **High** — student would be blocked or form a wrong understanding
+- **Medium** — student would be confused or slowed down significantly
+- **Low** — minor gap that is unlikely to cause real trouble
+
+### D1. Learning objective clarity
+
+- Does the **Purpose** state a concrete, single learning outcome (not a vague "learn about X")?
+- Does the **Context** explain *why* this task matters to a working engineer?
+- Does the task content actually deliver on the stated Purpose?
+
+### D2. Step-by-step completeness
+
+- Is every action a single, concrete instruction a beginner can execute?
+- Are there compound instructions hiding multiple actions in one step? (e.g., "Open the file and change the value and save")
+- Are there ambiguous verbs without a clear target? (e.g., "Update the configuration" with no file path or key name)
+- Are there prerequisite assumptions not covered by earlier tasks or `setup.md`?
+
+### D3. Student navigation
+
+- Can a student follow the task linearly without jumping between files?
+- When the task references another file or wiki section, is the link present and the referenced section relevant?
+- Is the Table of Contents accurate and complete relative to the actual headings?
+
+### D4. Checkpoints and feedback loops
+
+- Does every non-trivial step include a checkpoint (expected output, smoke test, visual confirmation, state check)?
+- Are checkpoints indented under the action step they verify, not numbered as separate steps?
+- For infrastructure or environment-dependent steps (Docker, databases, port-bound services), is there a collapsible troubleshooting block?
+
+### D5. Acceptance criteria alignment
+
+- Is there a criterion for every deliverable produced by the task?
+- Is there a criterion not backed by any step in the task?
+- Are all criteria concrete and binary (pass/fail), not subjective ("looks correct")?
+
+### D6. Difficulty and progression
+
+- Is the task's complexity appropriate for its position in the task sequence (setup → observe → debug → implement → deploy)?
+- Does the task jump to implementation without first building the student's mental model?
+- Does the task repeat learning objectives already covered by a prior task without adding new depth?
+
+### D7. Practical usability
+
+- Would a student on a fresh setup be able to complete the task without TA help beyond documented troubleshooting?
+- Are there steps that could silently fail (no output, no checkpoint) leaving the student unaware of a problem?
+- Are hints or collapsible solutions provided for debugging/problem-solving steps where a student is expected to search for the answer?
+
+### D8. LLM-independence
+
+- Is the task completable without an LLM? If it requires AI use, is that stated explicitly?
+- Are placeholders, examples, and step-by-step guidance sufficient for a student who doesn't use AI assistance?
+
+### D9. Git workflow coherence
+
+- If the task produces code changes: does it start with "Follow the `Git workflow`", include "Create an issue", and end with "Finish the task" (PR + review)?
+- If the task does not produce code: is the ending appropriate (issue comment with evidence, or committed deliverable file)?
+- Is the issue title format specified (`[Task] <title>`)?
+
+### D10. Conceptual gaps and misconceptions
+
+- Does the task ask students to do something without explaining why (missing `> [!NOTE]` where the reasoning isn't obvious)?
+- Could any step lead a student to form a wrong mental model (e.g., always deleting and recreating containers instead of understanding state)?
+- Does the task introduce a concept without any reference to learn more (wiki link, note, or pointer)?
 
 ---
 

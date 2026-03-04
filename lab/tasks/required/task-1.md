@@ -83,6 +83,7 @@ See:
     - [1.9.3. Comment 3: attach the file with the data output from `pgAdmin`](#193-comment-3-attach-the-file-with-the-data-output-from-pgadmin)
     - [1.9.4. Comment 4: paste the ERD from `pgAdmin`](#194-comment-4-paste-the-erd-from-pgadmin)
   - [1.10. Close the issue](#110-close-the-issue)
+  - [1.11. Check the task using the autochecker](#111-check-the-task-using-the-autochecker)
 - [2. Acceptance criteria](#2-acceptance-criteria)
 
 ## 1. Steps
@@ -357,6 +358,10 @@ Title: `[Task] Observe System Component Interaction`
 ### 1.10. Close the issue
 
 Close the issue.
+
+### 1.11. Check the task using the autochecker
+
+[Check the task using the autochecker `Telegram` bot](../../../wiki/autochecker.md#check-the-task-using-the-autochecker-bot).
 
 ---
 

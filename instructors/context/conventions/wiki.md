@@ -80,7 +80,7 @@ Depending on the lab, consider creating wiki files for:
 - `package-manager.md` — Package managers, tools, and dependencies overview.
 - `ssh.md` — SSH setup and usage.
 - `python.md` — Python, virtual environments, package managers (`uv`).
-- `testing.md` — Testing concepts, `pytest`, assertions.
+- `quality-assurance.md` — Quality assurance concepts, `pytest`, assertions.
 - `http.md` — HTTP protocol, requests, responses, and status codes.
 - `http-auth.md` — HTTP authentication via API keys and authorization.
 - `web-development.md` — HTTP, endpoints, status codes, URLs, JSON, APIs.

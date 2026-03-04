@@ -15,8 +15,6 @@
   - [Inspect ports](#inspect-ports)
     - [See listening TCP ports](#see-listening-tcp-ports)
     - [Inspect a specific port](#inspect-a-specific-port)
-  - [Troubleshooting](#troubleshooting)
-    - [Service is running but a request fails](#service-is-running-but-a-request-fails)
 
 ## What is `Linux`
 
@@ -137,12 +135,3 @@ To inspect a specific port,
 ```terminal
 ss -ltn 'sport = :42000'
 ```
-
-### Troubleshooting
-
-#### Service is running but a request fails
-
-Verify both:
-
-1. The process is listening on the expected port.
-2. You are using the correct host and port in your request.
