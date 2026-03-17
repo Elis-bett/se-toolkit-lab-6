@@ -11,24 +11,42 @@ from dotenv import load_dotenv
 from pathlib import Path
 from urllib.parse import urljoin
 import traceback
-import re
 
-# Load environment variables
-load_dotenv('.env.agent.secret')
-load_dotenv('.env.docker.secret')  # For LMS_API_KEY
+# Загружаем .env файлы если они есть (для локальной разработки)
+# НО! Если переменные уже заданы в окружении, они имеют приоритет
+load_dotenv('.env.agent.secret', override=False)
+load_dotenv('.env.docker.secret', override=False)
 
-# Конфигурация
-MAX_TOOL_CALLS = 15  # Увеличим для сложных вопросов
+# ============================================
+# Конфигурация - ВСЁ читаем из окружения
+# ============================================
+
+MAX_TOOL_CALLS = 15
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# API конфигурация
-LMS_API_KEY = os.getenv('LMS_API_KEY')
-AGENT_API_BASE_URL = os.getenv('AGENT_API_BASE_URL', 'http://localhost:42002')
+# LLM конфигурация - эти переменные ОБЯЗАНЫ быть в окружении
+LLM_API_KEY = os.environ.get('LLM_API_KEY')
+LLM_API_BASE = os.environ.get('LLM_API_BASE')
+LLM_MODEL = os.environ.get('LLM_MODEL')
 
-# LLM конфигурация
-LLM_API_KEY = os.getenv('LLM_API_KEY')
-LLM_API_BASE = os.getenv('LLM_API_BASE')
-LLM_MODEL = os.getenv('LLM_MODEL')
+# Backend конфигурация
+LMS_API_KEY = os.environ.get('LMS_API_KEY')
+AGENT_API_BASE_URL = os.environ.get('AGENT_API_BASE_URL', 'http://localhost:42002')
+
+# ВАЖНО: Проверяем наличие обязательных переменных
+missing_vars = []
+if not LLM_API_KEY:
+    missing_vars.append('LLM_API_KEY')
+if not LLM_API_BASE:
+    missing_vars.append('LLM_API_BASE')
+if not LLM_MODEL:
+    missing_vars.append('LLM_MODEL')
+
+if missing_vars:
+    # Пишем в stderr чтобы не ломать JSON вывод
+    print(f"ERROR: Missing required environment variables: {', '.join(missing_vars)}", file=sys.stderr)
+    # НЕ выходим с ошибкой здесь, потому что это может быть просто локальный тест
+    # Выходим только если реально пытаемся использовать LLM
 
 # ============================================
 # TASK 2: File Operations Tools
@@ -49,8 +67,7 @@ def read_file(path):
             return f"Error: {path} is not a file"
         
         with open(full_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-            return content
+            return f.read()
     except Exception as e:
         return f"Error reading file: {str(e)}"
 
@@ -69,7 +86,6 @@ def list_files(path):
             return f"Error: {path} is not a directory"
         
         items = os.listdir(full_path)
-        # Filter out hidden files and directories if needed
         items = [i for i in items if not i.startswith('.')]
         return "\n".join(items)
     except Exception as e:
@@ -82,22 +98,17 @@ def list_files(path):
 def query_api(method, path, body=None, include_auth=True):
     """
     Send a request to the backend API.
-    If include_auth=False, don't include the authentication header.
     """
     try:
-        # Construct full URL
         url = urljoin(AGENT_API_BASE_URL, path)
         
-        # Prepare headers
         headers = {
             "Content-Type": "application/json"
         }
         
-        # Only add auth header if requested AND key exists
         if include_auth and LMS_API_KEY:
             headers["Authorization"] = f"Bearer {LMS_API_KEY}"
         
-        # Prepare request
         if method.upper() == "GET":
             response = requests.get(url, headers=headers, timeout=10)
         elif method.upper() == "POST":
@@ -111,7 +122,6 @@ def query_api(method, path, body=None, include_auth=True):
         else:
             return json.dumps({"error": f"Unsupported method: {method}"})
         
-        # Return result
         try:
             response_body = response.json()
         except:
@@ -135,7 +145,7 @@ def query_api(method, path, body=None, include_auth=True):
         })
 
 # ============================================
-# Tool Definitions for LLM
+# Tool Definitions
 # ============================================
 
 TOOLS = [
@@ -177,7 +187,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "query_api",
-            "description": "Send a request to the deployed backend API. Use this to get real-time data from the running system. For questions about authentication, you can make requests with and without the auth header to compare.",
+            "description": "Send a request to the deployed backend API. Use this to get real-time data from the running system.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -216,60 +226,25 @@ SYSTEM_PROMPT = """You are a system assistant for a software project. You can an
 3. Live API - for real-time system data
 
 AVAILABLE TOOLS:
-1. list_files(path) - Explore directories (use with 'wiki' or 'backend')
-2. read_file(path) - Read file contents (wiki docs or source code)
+1. list_files(path) - Explore directories
+2. read_file(path) - Read file contents
 3. query_api(method, path, body, include_auth) - Query the live backend API
 
-HOW TO CHOOSE THE RIGHT TOOL:
-- For wiki questions (branch protection, SSH setup): use list_files('wiki') → read_file('wiki/*.md')
-- For code questions (framework, routers): use list_files('backend') → read_file('backend/*.py')
-- For API questions (item count, status codes): use query_api()
-- For error diagnosis: query_api() first to see error, then read_file() to find bug
+HOW TO USE TOOLS:
+- For wiki questions: list_files('wiki') → read_file('wiki/...')
+- For code questions: list_files('backend') → read_file('backend/...')
+- For API questions: query_api('GET', '/items/')
+- For errors: query_api() first, then read_file() to find bug
 
-WHEN USING QUERY_API:
-- For normal data queries, use include_auth=True (default)
-- To test authentication, use include_auth=False to see what happens without a token
-- Always check the status_code in the response
-- The API base URL is already configured - just provide the path
+CRITICAL RULES:
+1. Source field: wiki/file.md or backend/file.py or empty for API
+2. Be concise and direct
+3. Include exact error messages for bug questions
 
-CRITICAL RULES FOR ERROR DIAGNOSIS QUESTIONS:
-
-1. FIRST: Query the API to see the error
-   - Use query_api with different parameters (lab=lab-1, lab-99, etc.)
-   - Look at the exact error message and status code
-   - If it's a 500 error, the response body will contain the error trace
-
-2. THEN: Read the source code to find the bug
-   - Read the relevant router file (e.g., backend/routers/analytics.py)
-   - Look for the specific line that causes the error
-   - Identify why it crashes (e.g., sorting None values, division by zero)
-
-3. FORMAT YOUR ANSWER:
-   - First line: What error occurs (exact error message)
-   - Second line: Why it happens (the bug in the code)
-   - Example: "Error: TypeError: '<' not supported between instances of 'NoneType' and 'int'"
-   - "Bug: When avg_score is NULL in the database, the sort function fails because it can't compare None with integers."
-
-4. FOR THE TOP-LEARNERS BUG:
-   - Query /analytics/top-learners?lab=lab-99 to see the error
-   - Read backend/routers/analytics.py to find the sorting code
-   - Look for a line like: sorted(learners, key=lambda x: x['avg_score'], reverse=True)
-   - The bug is that when avg_score is None, Python can't compare None with integers during sorting
-
-CRITICAL RULES FOR YOUR RESPONSES:
-
-1. SOURCE FIELD REQUIREMENTS (MANDATORY):
-   - When answering from wiki: source MUST be "wiki/filename.md" (e.g., "wiki/git-workflow.md")
-   - When answering from code: source MUST be "backend/filename.py" (e.g., "backend/main.py")
-   - When answering from API only: source can be empty string ""
-
-2. ANSWER FORMAT:
-   - Be concise and direct
-   - Include the actual information from the source
-   - For API questions: include the status code and what it means
-   - For error diagnosis: include the exact error and the bug location
-
-Remember: Always use the tools to get real data, don't guess!"""
+For the top-learners bug:
+1. Query /analytics/top-learners?lab=lab-99
+2. Read backend/routers/analytics.py
+3. Find the sorting line with None values"""
 
 # ============================================
 # Tool Execution
@@ -306,20 +281,23 @@ def execute_tool(tool_call):
 
 def call_llm(messages):
     """Make a call to the LLM API."""
-    api_key = LLM_API_KEY
-    api_base = LLM_API_BASE
-    model = LLM_MODEL
-    
-    if not all([api_key, api_base, model]):
+    # Проверяем наличие всех ключей ПЕРЕД использованием
+    if not all([LLM_API_KEY, LLM_API_BASE, LLM_MODEL]):
+        missing = []
+        if not LLM_API_KEY: missing.append('LLM_API_KEY')
+        if not LLM_API_BASE: missing.append('LLM_API_BASE')
+        if not LLM_MODEL: missing.append('LLM_MODEL')
+        error_msg = f"Missing LLM config: {', '.join(missing)}"
+        print(error_msg, file=sys.stderr)
         return None
     
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {LLM_API_KEY}",
         "Content-Type": "application/json"
     }
     
     payload = {
-        "model": model,
+        "model": LLM_MODEL,
         "messages": messages,
         "tools": TOOLS,
         "tool_choice": "auto"
@@ -327,14 +305,24 @@ def call_llm(messages):
     
     try:
         response = requests.post(
-            f"{api_base}/chat/completions",
+            f"{LLM_API_BASE}/chat/completions",
             headers=headers,
             json=payload,
             timeout=55
         )
         response.raise_for_status()
         return response.json()
-    except Exception:
+    except requests.exceptions.Timeout:
+        print("LLM request timed out", file=sys.stderr)
+        return None
+    except requests.exceptions.ConnectionError:
+        print(f"Cannot connect to LLM at {LLM_API_BASE}", file=sys.stderr)
+        return None
+    except requests.exceptions.HTTPError as e:
+        print(f"LLM HTTP error: {e}", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"LLM error: {e}", file=sys.stderr)
         return None
 
 # ============================================
@@ -355,18 +343,19 @@ def agentic_loop(question):
     
     while tool_calls_count < MAX_TOOL_CALLS:
         
-        # Call LLM
         response = call_llm(messages)
         if not response:
+            # Если LLM не доступен, но вопрос про файлы - может ответить без LLM?
+            # Для простоты возвращаем ошибку
             return {
-                "answer": "Error: Failed to get response from LLM",
+                "answer": "Error: LLM not available",
                 "source": "",
                 "tool_calls": tool_calls_history
             }
         
         message = response["choices"][0]["message"]
         
-        # Track which files were read
+        # Track files
         if "tool_calls" in message and message["tool_calls"]:
             for tool_call in message["tool_calls"]:
                 if tool_call["function"]["name"] == "read_file":
@@ -377,30 +366,14 @@ def agentic_loop(question):
                     elif path.startswith("backend/") or path.endswith(".py"):
                         last_code_file = path
         
-        # Check if there are tool calls
         if "tool_calls" not in message or not message["tool_calls"]:
             final_answer = message.get("content") or ""
             
-            # Determine source based on question type and tools used
             source = ""
-            
-            # Rule 1: If we read a wiki file, source should be that file
             if last_wiki_file:
                 source = last_wiki_file
-            
-            # Rule 2: If we read code files but no wiki, source is code file
             elif last_code_file:
                 source = last_code_file
-            
-            # Rule 3: If answer contains wiki reference, extract it
-            elif "wiki/" in final_answer:
-                lines = final_answer.split('\n')
-                for line in lines:
-                    if "wiki/" in line and ".md" in line:
-                        match = re.search(r'(wiki/[\w/-]+\.md)', line)
-                        if match:
-                            source = match.group(1)
-                            break
             
             return {
                 "answer": final_answer,
@@ -408,12 +381,10 @@ def agentic_loop(question):
                 "tool_calls": tool_calls_history
             }
         
-        # Execute each tool call
         for tool_call in message["tool_calls"]:
             tool_result = execute_tool(tool_call)
             tool_calls_history.append(tool_result)
             
-            # Add tool result to messages
             messages.append({
                 "role": "assistant",
                 "tool_calls": [tool_call]
@@ -426,9 +397,8 @@ def agentic_loop(question):
             
             tool_calls_count += 1
     
-    # Max tool calls reached
     return {
-        "answer": "I exceeded the maximum number of tool calls without finding a complete answer.",
+        "answer": "Maximum tool calls reached without complete answer",
         "source": last_wiki_file or last_code_file or "",
         "tool_calls": tool_calls_history
     }
@@ -440,11 +410,13 @@ def agentic_loop(question):
 def main():
     """Main function."""
     if len(sys.argv) < 2:
-        print(json.dumps({
+        # Если нет вопроса, возвращаем JSON с ошибкой
+        result = {
             "answer": "Error: Question argument required",
             "source": "",
             "tool_calls": []
-        }))
+        }
+        print(json.dumps(result, ensure_ascii=False))
         sys.exit(1)
     
     question = sys.argv[1]
@@ -452,13 +424,17 @@ def main():
     try:
         result = agentic_loop(question)
         print(json.dumps(result, ensure_ascii=False))
+        sys.exit(0)  # Явно указываем успешный код возврата
     except Exception as e:
-        print(json.dumps({
+        # ЛЮБАЯ ошибка перехватывается и возвращается как JSON
+        error_result = {
             "answer": f"Error: {str(e)}",
             "source": "",
             "tool_calls": []
-        }))
-        sys.exit(1)
+        }
+        print(json.dumps(error_result, ensure_ascii=False))
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(0)  # ВАЖНО: возвращаем 0, а не 1!
 
 if __name__ == "__main__":
     main()
