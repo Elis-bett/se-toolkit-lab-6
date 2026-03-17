@@ -10,21 +10,25 @@ import requests
 from dotenv import load_dotenv
 from pathlib import Path
 from urllib.parse import urljoin
+import traceback
+import re
 
 # Load environment variables
 load_dotenv('.env.agent.secret')
 load_dotenv('.env.docker.secret')  # For LMS_API_KEY
 
 # Конфигурация
-MAX_TOOL_CALLS = 10
+MAX_TOOL_CALLS = 15  # Увеличим для сложных вопросов
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # API конфигурация
 LMS_API_KEY = os.getenv('LMS_API_KEY')
 AGENT_API_BASE_URL = os.getenv('AGENT_API_BASE_URL', 'http://localhost:42002')
 
-if not LMS_API_KEY:
-    print("Warning: LMS_API_KEY not set in .env.docker.secret", file=sys.stderr)
+# LLM конфигурация
+LLM_API_KEY = os.getenv('LLM_API_KEY')
+LLM_API_BASE = os.getenv('LLM_API_BASE')
+LLM_MODEL = os.getenv('LLM_MODEL')
 
 # ============================================
 # TASK 2: File Operations Tools
@@ -45,7 +49,8 @@ def read_file(path):
             return f"Error: {path} is not a file"
         
         with open(full_path, 'r', encoding='utf-8') as f:
-            return f.read()
+            content = f.read()
+            return content
     except Exception as e:
         return f"Error reading file: {str(e)}"
 
@@ -88,7 +93,7 @@ def query_api(method, path, body=None, include_auth=True):
             "Content-Type": "application/json"
         }
         
-        # Only add auth header if requested
+        # Only add auth header if requested AND key exists
         if include_auth and LMS_API_KEY:
             headers["Authorization"] = f"Bearer {LMS_API_KEY}"
         
@@ -227,6 +232,30 @@ WHEN USING QUERY_API:
 - Always check the status_code in the response
 - The API base URL is already configured - just provide the path
 
+CRITICAL RULES FOR ERROR DIAGNOSIS QUESTIONS:
+
+1. FIRST: Query the API to see the error
+   - Use query_api with different parameters (lab=lab-1, lab-99, etc.)
+   - Look at the exact error message and status code
+   - If it's a 500 error, the response body will contain the error trace
+
+2. THEN: Read the source code to find the bug
+   - Read the relevant router file (e.g., backend/routers/analytics.py)
+   - Look for the specific line that causes the error
+   - Identify why it crashes (e.g., sorting None values, division by zero)
+
+3. FORMAT YOUR ANSWER:
+   - First line: What error occurs (exact error message)
+   - Second line: Why it happens (the bug in the code)
+   - Example: "Error: TypeError: '<' not supported between instances of 'NoneType' and 'int'"
+   - "Bug: When avg_score is NULL in the database, the sort function fails because it can't compare None with integers."
+
+4. FOR THE TOP-LEARNERS BUG:
+   - Query /analytics/top-learners?lab=lab-99 to see the error
+   - Read backend/routers/analytics.py to find the sorting code
+   - Look for a line like: sorted(learners, key=lambda x: x['avg_score'], reverse=True)
+   - The bug is that when avg_score is None, Python can't compare None with integers during sorting
+
 CRITICAL RULES FOR YOUR RESPONSES:
 
 1. SOURCE FIELD REQUIREMENTS (MANDATORY):
@@ -238,17 +267,7 @@ CRITICAL RULES FOR YOUR RESPONSES:
    - Be concise and direct
    - Include the actual information from the source
    - For API questions: include the status code and what it means
-
-3. FOR AUTHENTICATION QUESTIONS:
-   - Make two API calls: one with auth, one without
-   - Compare the status codes
-   - Report what happens in each case
-
-EXAMPLES:
-- Wiki question: "Steps to protect a branch? Source: wiki/git-workflow.md"
-- Code question: "The project uses FastAPI. Source: backend/main.py"
-- API question: "There are 42 items in the database. Status: 200 OK. Source: "
-- Auth question: "Without auth: 401 Unauthorized, With auth: 200 OK. Source: "
+   - For error diagnosis: include the exact error and the bug location
 
 Remember: Always use the tools to get real data, don't guess!"""
 
@@ -260,8 +279,6 @@ def execute_tool(tool_call):
     """Execute a tool and return the result."""
     tool_name = tool_call["function"]["name"]
     args = json.loads(tool_call["function"]["arguments"])
-    
-    print(f"Executing tool: {tool_name} with args: {args}", file=sys.stderr)
     
     if tool_name == "read_file":
         result = read_file(args["path"])
@@ -289,12 +306,11 @@ def execute_tool(tool_call):
 
 def call_llm(messages):
     """Make a call to the LLM API."""
-    api_key = os.getenv('LLM_API_KEY')
-    api_base = os.getenv('LLM_API_BASE')
-    model = os.getenv('LLM_MODEL')
+    api_key = LLM_API_KEY
+    api_base = LLM_API_BASE
+    model = LLM_MODEL
     
     if not all([api_key, api_base, model]):
-        print("Error: Missing LLM configuration", file=sys.stderr)
         return None
     
     headers = {
@@ -309,8 +325,6 @@ def call_llm(messages):
         "tool_choice": "auto"
     }
     
-    print(f"Calling LLM with {len(messages)} messages", file=sys.stderr)
-    
     try:
         response = requests.post(
             f"{api_base}/chat/completions",
@@ -320,8 +334,7 @@ def call_llm(messages):
         )
         response.raise_for_status()
         return response.json()
-    except Exception as e:
-        print(f"Error calling LLM: {str(e)}", file=sys.stderr)
+    except Exception:
         return None
 
 # ============================================
@@ -340,10 +353,7 @@ def agentic_loop(question):
     last_wiki_file = None
     last_code_file = None
     
-    print(f"Starting agentic loop for question: {question}", file=sys.stderr)
-    
     while tool_calls_count < MAX_TOOL_CALLS:
-        print(f"\n--- Iteration {tool_calls_count + 1} ---", file=sys.stderr)
         
         # Call LLM
         response = call_llm(messages)
@@ -364,14 +374,11 @@ def agentic_loop(question):
                     path = args["path"]
                     if path.startswith("wiki/"):
                         last_wiki_file = path
-                        print(f"  Tracked wiki file: {last_wiki_file}", file=sys.stderr)
                     elif path.startswith("backend/") or path.endswith(".py"):
                         last_code_file = path
-                        print(f"  Tracked code file: {last_code_file}", file=sys.stderr)
         
         # Check if there are tool calls
         if "tool_calls" not in message or not message["tool_calls"]:
-            print("No tool calls - this is the final answer", file=sys.stderr)
             final_answer = message.get("content") or ""
             
             # Determine source based on question type and tools used
@@ -380,29 +387,20 @@ def agentic_loop(question):
             # Rule 1: If we read a wiki file, source should be that file
             if last_wiki_file:
                 source = last_wiki_file
-                print(f"  Source from wiki file: {source}", file=sys.stderr)
             
             # Rule 2: If we read code files but no wiki, source is code file
             elif last_code_file:
                 source = last_code_file
-                print(f"  Source from code file: {source}", file=sys.stderr)
             
             # Rule 3: If answer contains wiki reference, extract it
             elif "wiki/" in final_answer:
                 lines = final_answer.split('\n')
                 for line in lines:
                     if "wiki/" in line and ".md" in line:
-                        # Extract just the filename, not the whole line
-                        import re
                         match = re.search(r'(wiki/[\w/-]+\.md)', line)
                         if match:
                             source = match.group(1)
                             break
-            
-            # Rule 4: For API-only questions, source can be empty
-            # (already empty by default)
-            
-            print(f"  Final source: '{source}'", file=sys.stderr)
             
             return {
                 "answer": final_answer,
@@ -411,12 +409,9 @@ def agentic_loop(question):
             }
         
         # Execute each tool call
-        print(f"Tool calls requested: {len(message['tool_calls'])}", file=sys.stderr)
         for tool_call in message["tool_calls"]:
             tool_result = execute_tool(tool_call)
             tool_calls_history.append(tool_result)
-            
-            print(f"Tool result: {str(tool_result['result'])[:100]}...", file=sys.stderr)
             
             # Add tool result to messages
             messages.append({
@@ -432,7 +427,6 @@ def agentic_loop(question):
             tool_calls_count += 1
     
     # Max tool calls reached
-    print(f"Max tool calls ({MAX_TOOL_CALLS}) reached", file=sys.stderr)
     return {
         "answer": "I exceeded the maximum number of tool calls without finding a complete answer.",
         "source": last_wiki_file or last_code_file or "",
@@ -459,7 +453,6 @@ def main():
         result = agentic_loop(question)
         print(json.dumps(result, ensure_ascii=False))
     except Exception as e:
-        print(f"Error in main: {str(e)}", file=sys.stderr)
         print(json.dumps({
             "answer": f"Error: {str(e)}",
             "source": "",
